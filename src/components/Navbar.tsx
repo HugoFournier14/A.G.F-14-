@@ -38,14 +38,9 @@ export const Navbar: React.FC = () => {
         <a href="#" className="flex items-center gap-2.5 group">
           <WaspProhibitionIcon className="w-10 h-10 sm:w-11 sm:h-11 shrink-0 drop-shadow-sm" />
           <div className="flex flex-col">
-            <div className="flex items-center gap-1.5">
-              <span className="text-xl sm:text-2xl font-black text-white tracking-tight group-hover:text-[#f3a670] transition-colors">
-                {COMPANY_INFO.name}
-              </span>
-              <span className="hidden md:inline-flex text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-[#2e5934] text-[#b8f0c2] border border-[#3f7246]">
-                Certibiocide
-              </span>
-            </div>
+            <span className="text-xl sm:text-2xl font-black text-white tracking-tight group-hover:text-[#f3a670] transition-colors">
+              {COMPANY_INFO.name}
+            </span>
             <span className="text-xs sm:text-sm font-medium text-[#bad0bd] leading-none">
               {COMPANY_INFO.tagline}
             </span>

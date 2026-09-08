@@ -3,58 +3,13 @@ import { Phone, Shield, ArrowDown, CheckCircle2, Camera } from 'lucide-react';
 import { COMPANY_INFO } from '../data/interventions';
 import { WaspProhibitionIcon, CertibiocideBadge } from './WaspEmblem';
 
-// Realistic, high-resolution photo of professional exterminator in protective bee/hornet suit & hood
-const DEFAULT_INTERVENTION_PHOTO =
+// Official intervention photo of Arnaud in /public/arnaud.png
+const DEFAULT_INTERVENTION_PHOTO = '/arnaud.png';
+const FALLBACK_INTERVENTION_PHOTO =
   'https://images.unsplash.com/photo-1598084999517-f58c704f5e8b?auto=format&fit=crop&w=1000&q=85';
 
-const PHOTO_STORAGE_KEY = 'agf14_saved_intervention_photo';
-
-// Potential names for photo placed in /public
-const CANDIDATE_PUBLIC_PHOTOS = [
-  '/photo.jpg',
-  '/photo.png',
-  '/photo.jpeg',
-  '/photo.webp',
-  '/hero.jpg',
-  '/hero.png',
-  '/hero.jpeg',
-  '/hero.webp',
-  '/photo-intervention.jpg',
-  '/photo-intervention.png',
-  '/hero-intervention.jpg',
-  '/intervention.jpg',
-  '/arnaud.jpg',
-];
-
 export const Hero: React.FC = () => {
-  const [photoUrl, setPhotoUrl] = useState<string>(() => {
-    try {
-      const stored = localStorage.getItem(PHOTO_STORAGE_KEY);
-      if (stored) return stored;
-    } catch {
-      // ignore
-    }
-    return DEFAULT_INTERVENTION_PHOTO;
-  });
-
-  // Check if user placed a photo in /public
-  useEffect(() => {
-    let isCancelled = false;
-
-    for (const path of CANDIDATE_PUBLIC_PHOTOS) {
-      const img = new Image();
-      img.src = path;
-      img.onload = () => {
-        if (!isCancelled) {
-          setPhotoUrl(path);
-        }
-      };
-    }
-
-    return () => {
-      isCancelled = true;
-    };
-  }, []);
+  const [photoUrl, setPhotoUrl] = useState<string>(DEFAULT_INTERVENTION_PHOTO);
 
   return (
     <section id="hero-section" className="relative pt-8 pb-12 sm:pt-12 sm:pb-16 px-4 bg-[#f8f5ee] border-b border-[#e6dece] overflow-hidden">
@@ -153,6 +108,11 @@ export const Hero: React.FC = () => {
               <div className="relative aspect-4/3 w-full bg-[#1b2b1e] overflow-hidden">
                 <img
                   src={photoUrl}
+                  onError={() => {
+                    if (photoUrl !== FALLBACK_INTERVENTION_PHOTO) {
+                      setPhotoUrl(FALLBACK_INTERVENTION_PHOTO);
+                    }
+                  }}
                   alt="Arnaud en tenue intégrale Apiroutec de protection guêpes et frelons lors d'une intervention"
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover object-center group-hover:scale-102 transition-transform duration-500"
