@@ -1,0 +1,6 @@
+{
+  "name": "AGF 14 - Arnaud Guêpes-Frelons",
+  "description": "Entreprise de désinsectisation et dératisation à Mézidon Vallée d'Auge et dans le Calvados (14). Intervention rapide 7j/7 pour nids de guêpes et frelons, certifié Certibiocide, garantie 6 mois.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
