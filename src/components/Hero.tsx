@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Phone, Shield, ArrowDown, CheckCircle2, Camera, Upload, Check, Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Phone, Shield, ArrowDown, CheckCircle2, Camera } from 'lucide-react';
 import { COMPANY_INFO } from '../data/interventions';
 import { WaspProhibitionIcon, CertibiocideBadge } from './WaspEmblem';
 
@@ -9,80 +9,52 @@ const DEFAULT_INTERVENTION_PHOTO =
 
 const PHOTO_STORAGE_KEY = 'agf14_saved_intervention_photo';
 
-export const Hero: React.FC = () => {
-  const [photoUrl, setPhotoUrl] = useState<string>(DEFAULT_INTERVENTION_PHOTO);
-  const [isSavedLocally, setIsSavedLocally] = useState<boolean>(false);
-  const [isSaving, setIsSaving] = useState<boolean>(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+// Potential names for photo placed in /public
+const CANDIDATE_PUBLIC_PHOTOS = [
+  '/photo.jpg',
+  '/photo.png',
+  '/photo.jpeg',
+  '/photo.webp',
+  '/hero.jpg',
+  '/hero.png',
+  '/hero.jpeg',
+  '/hero.webp',
+  '/photo-intervention.jpg',
+  '/photo-intervention.png',
+  '/hero-intervention.jpg',
+  '/intervention.jpg',
+  '/arnaud.jpg',
+];
 
-  // Restore saved photo on load
-  useEffect(() => {
+export const Hero: React.FC = () => {
+  const [photoUrl, setPhotoUrl] = useState<string>(() => {
     try {
       const stored = localStorage.getItem(PHOTO_STORAGE_KEY);
-      if (stored) {
-        setPhotoUrl(stored);
-        setIsSavedLocally(true);
-        return;
-      }
+      if (stored) return stored;
     } catch {
-      // ignore localStorage disabled
+      // ignore
+    }
+    return DEFAULT_INTERVENTION_PHOTO;
+  });
+
+  // Check if user placed a photo in /public
+  useEffect(() => {
+    let isCancelled = false;
+
+    for (const path of CANDIDATE_PUBLIC_PHOTOS) {
+      const img = new Image();
+      img.src = path;
+      img.onload = () => {
+        if (!isCancelled) {
+          setPhotoUrl(path);
+        }
+      };
     }
 
-    // Check if hero-intervention.jpg was written to public folder
-    const img = new Image();
-    img.src = '/hero-intervention.jpg';
-    img.onload = () => {
-      setPhotoUrl('/hero-intervention.jpg');
-      setIsSavedLocally(true);
+    return () => {
+      isCancelled = true;
     };
   }, []);
-
-  const saveAndApplyPhoto = async (file: File) => {
-    setIsSaving(true);
-    const reader = new FileReader();
-    reader.onload = async (event) => {
-      const dataUrl = event.target?.result as string;
-      if (dataUrl) {
-        setPhotoUrl(dataUrl);
-        setIsSavedLocally(true);
-
-        // 1. Save permanently in client's localStorage
-        try {
-          localStorage.setItem(PHOTO_STORAGE_KEY, dataUrl);
-        } catch (e) {
-          console.warn('LocalStorage quota or storage issue', e);
-        }
-
-        // 2. Persist to server disk in public/hero-intervention.jpg via Vite dev middleware
-        try {
-          await fetch('/api/save-photo', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageBase64: dataUrl }),
-          });
-        } catch (e) {
-          console.warn('Could not write to server disk', e);
-        }
-      }
-      setIsSaving(false);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      saveAndApplyPhoto(file);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      saveAndApplyPhoto(file);
-    }
-  };
 
   return (
     <section id="hero-section" className="relative pt-8 pb-12 sm:pt-12 sm:pb-16 px-4 bg-[#f8f5ee] border-b border-[#e6dece] overflow-hidden">
@@ -162,47 +134,21 @@ export const Hero: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column: Authentic Intervention Photo Frame with Van Emblem & Certibiocide (Tabs removed) */}
+          {/* Right Column: Authentic Intervention Photo Frame with Van Emblem & Certibiocide */}
           <div className="lg:col-span-5 flex flex-col items-center justify-center">
-            {/* Top Bar above Photo: Status badge + simple action */}
-            <div className="w-full max-w-md flex items-center justify-between gap-2 mb-2 px-1">
+            {/* Top Bar above Photo: Clean indicator */}
+            <div className="w-full max-w-md flex items-center justify-between mb-2.5 px-1">
               <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#234226]">
                 <Camera className="w-4 h-4 text-[#234226]" />
                 <span>Photo réelle d'intervention</span>
-                {isSavedLocally && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-full ml-1 border border-emerald-300">
-                    <Check className="w-3 h-3" />
-                    Enregistrée
-                  </span>
-                )}
               </div>
-
-              {/* Discreet button to replace or change photo if needed */}
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isSaving}
-                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#5a4d3e] hover:text-[#203e23] px-2.5 py-1 rounded-lg bg-white/90 hover:bg-white border border-[#d6c7b3] shadow-xs transition-colors cursor-pointer"
-                title="Remplacer la photo par une autre"
-              >
-                <Upload className="w-3.5 h-3.5 text-[#203e23]" />
-                <span>{isSaving ? 'Enregistrement...' : 'Changer photo'}</span>
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoUpload}
-                className="hidden"
-              />
+              <span className="text-[11px] font-semibold text-[#5a4d3e]">
+                Sur le terrain • Calvados (14)
+              </span>
             </div>
 
-            {/* Main Visual Card with strong depth, soft shadow & drop capability */}
-            <div
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={handleDrop}
-              className="w-full max-w-md bg-white rounded-2xl border border-[#dbcfbc] shadow-xl shadow-black/10 overflow-hidden relative group"
-            >
+            {/* Main Visual Card with strong depth and soft shadow */}
+            <div className="w-full max-w-md bg-white rounded-2xl border border-[#dbcfbc] shadow-xl shadow-black/10 overflow-hidden relative group">
               {/* Photo Presentation Container */}
               <div className="relative aspect-4/3 w-full bg-[#1b2b1e] overflow-hidden">
                 <img
